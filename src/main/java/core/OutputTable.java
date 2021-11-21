@@ -1,5 +1,5 @@
 
-package testsql;
+package core;
 
 
 public interface OutputTable<T> extends AutoCloseable{

@@ -1,5 +1,7 @@
+package core;
 
-package testsql;
+
+
 
 import java.sql.DriverManager;
 import java.sql.Connection;
@@ -22,7 +24,7 @@ public class ConectionFactory {
     }
 
     private ConectionFactory() {
-        this("jdbc:mysql://localhost/açai_stor", "root", "MySqlKey");
+        this("jdbc:mysql://localhost/aï¿½ai_stor", "root", "MySqlKey");
     }
     
     public static Connection getIstance(){

@@ -1,5 +1,7 @@
+package core;
 
-package testsql;
+
+
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -14,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.sql.Types;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -112,6 +115,22 @@ public class OutputTableObject<T> implements OutputTable{
             if(!set.contains(s))
                 throw new IncompatibleTableInterfaceException("incompatible table interface.");
         return map;
+    }
+    private Integer parseStringToTypeConstants(String in){
+        in = in.split("(")[0];
+        in = in.toLowerCase();
+        in = in.replace(" ", "_");
+        Field[] fs = Types.class.getDeclaredFields();
+        for(Field f: fs)
+            if(f.getName().equals(in)){
+                try {
+                    f.setAccessible(true);
+                    return   f.getInt(null);
+                } catch (IllegalArgumentException ex) {
+                } catch (IllegalAccessException ex) {
+                }
+            }
+        return null;        
     }
 
     @Override

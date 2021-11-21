@@ -1,5 +1,7 @@
+package core;
 
-package testsql;
+
+
 
 
 public interface AbstractField {

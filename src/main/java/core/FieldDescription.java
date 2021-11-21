@@ -1,5 +1,5 @@
 
-package testsql;
+package core;
 
 public class FieldDescription  implements AbstractField{
     private String field;

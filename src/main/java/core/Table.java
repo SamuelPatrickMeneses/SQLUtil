@@ -3,15 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package testsql;
+package core;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ColumnSetter {
+@Target(ElementType.TYPE)
+public @interface Table {
     String value();
 }

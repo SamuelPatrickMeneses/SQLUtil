@@ -1,8 +1,8 @@
 
-package testsql.Tables;
+package Tables;
 
-import testsql.ColumnGetter;
-import testsql.Table;
+import core.ColumnGetter;
+import core.Table;
 
 @Table("product")
 public  class Product {
