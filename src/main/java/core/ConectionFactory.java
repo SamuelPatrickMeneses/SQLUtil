@@ -24,7 +24,7 @@ public class ConectionFactory {
     }
 
     private ConectionFactory() {
-        this("jdbc:mysql://localhost/a�ai_stor", "root", "MySqlKey");
+        this("jdbc:mysql://localhost/açai_stor", "root", "MySqlKey");
     }
     
     public static Connection getIstance(){

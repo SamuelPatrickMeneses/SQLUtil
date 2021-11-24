@@ -4,6 +4,7 @@ package core;
 
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.Connection;
@@ -21,7 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-public class OutputTableObject<T> implements OutputTable{
+public class OutputTableObject<T> implements OutputTable<T>{
     
     private Connection c;
     private Map<String, AbstractField> fieldsMap;
@@ -30,6 +31,7 @@ public class OutputTableObject<T> implements OutputTable{
     private String[] column;
     private String[] incrementedColumn;
     private String preSearch;
+    private PreparedStatement statement;
     public OutputTableObject(Connection c, Class<T> _class) throws TableNotExistsException, IncompatibleTableInterfaceException {
         this.c = c;
         this._class = _class;
@@ -37,7 +39,11 @@ public class OutputTableObject<T> implements OutputTable{
         isTable();
         methods = getGetters(new HashMap<>());;
         preSearch = StringPrefactory();
-        
+        try {
+            statement = c.prepareStatement(preSearch);
+        } catch (SQLException ex) {
+            throw new IncompatibleTableInterfaceException("Statement error.");
+        }
     }
     private void isTable()throws TableNotExistsException{ 
         Table an = _class.getAnnotation(Table.class);
@@ -54,7 +60,7 @@ public class OutputTableObject<T> implements OutputTable{
                                                                rezultados.getString("Type"),
                                                                rezultados.getString("Null"),
                                                                rezultados.getString("Key"),
-                                                               rezultados.getString("Default"),
+                                                               rezultados.getObject("Default"),
                                                                rezultados.getString("Extra"));
                     fieldsMap.put(f,field);
                     l.add(f);
@@ -69,10 +75,10 @@ public class OutputTableObject<T> implements OutputTable{
     
     private String StringPrefactory(){
         String out = "insert into "+_class.getAnnotation(Table.class).value()+" (";
-        List<String> columns = Arrays.asList(column);
-        for(String col :columns)
-            if(fieldsMap.get(col).getExtra().toLowerCase().equals("auto_incements"))
-                columns.remove(col);
+        List<String> columns = new ArrayList(Arrays.asList(column));
+        for(int i = 0;i < column.length; i++)
+            if(fieldsMap.get(column[i]).getExtra().toLowerCase().equals("auto_increment"))
+                columns.remove(i);
         String fields = "";
         int size = columns.size();
         for(int i = 0; i < size;i++){
@@ -82,20 +88,18 @@ public class OutputTableObject<T> implements OutputTable{
             else
                 fields = fields.concat(") ");
         }
+        fields = fields.concat("values (");
+        for(int i = 0;i < size ; i++){
+            if(i < size -1)
+                fields = fields.concat("?,");
+            else
+                fields = fields.concat("?)");
+        }
         incrementedColumn = columns.toArray(new String[columns.size()]);
         return out.concat(fields);
     }
 
-    @Override
-    public void insertInto(Object o) throws RuntimeException {
-        
-        
-    }
 
-    @Override
-    public void update(Object o, int index) throws RuntimeException {
-      
-    }
     
     private Map<String,Method> getGetters(Map<String,Method> map) throws IncompatibleTableInterfaceException{
         for(Method m: _class.getMethods())
@@ -117,12 +121,13 @@ public class OutputTableObject<T> implements OutputTable{
         return map;
     }
     private Integer parseStringToTypeConstants(String in){
-        in = in.split("(")[0];
-        in = in.toLowerCase();
-        in = in.replace(" ", "_");
+        String out = in;
+        out = out.split("[(]")[0];
+        out = out.toUpperCase();
+        out = out.replace(" ", "_");
         Field[] fs = Types.class.getDeclaredFields();
         for(Field f: fs)
-            if(f.getName().equals(in)){
+            if(f.getName().equals(out)){
                 try {
                     f.setAccessible(true);
                     return   f.getInt(null);
@@ -135,6 +140,45 @@ public class OutputTableObject<T> implements OutputTable{
 
     @Override
     public void close() throws Exception {
+       statement.close();
        c.close();
     }
+
+    @Override
+    public <O extends T> void insertInto(O o) throws RuntimeException {
+        Object v = null;
+        int type[] = new int[incrementedColumn.length];
+        for(int i = 0; i < type.length; i++){
+            String columnType = fieldsMap.get(incrementedColumn[i]).getType();
+            type[i] = parseStringToTypeConstants(columnType);
+        }
+        try {
+            for(int i = 0; i < incrementedColumn.length;i++){
+                String column = incrementedColumn [i];
+                v = methods.get(column).invoke(o);
+                if(v == null)
+                    v = fieldsMap.get(column).getDefault();
+
+                statement.setObject(i+1, v,type[i]);
+            }
+            statement.execute();
+       } catch (IllegalAccessException ex) {
+
+       } catch (IllegalArgumentException ex) {
+                
+       } catch (InvocationTargetException ex) {
+           
+       } catch (SQLException ex) {
+           
+       }     
+    }
+
+    @Override
+    public <O extends T> void update(O o, int index) throws RuntimeException {
+        
+    }
+
+    
+
+    
 }

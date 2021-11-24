@@ -6,10 +6,10 @@ public class FieldDescription  implements AbstractField{
     private String type;
     private String _null;
     private String key;
-    private String _default;
+    private Object _default;
     private String extra;
 
-    public FieldDescription(String field, String type, String _null, String key, String _default, String extra) {
+    public FieldDescription(String field, String type, String _null, String key, Object _default, String extra) {
         this.field = field;
         this.type = type;
         this._null = _null;
@@ -50,7 +50,7 @@ public class FieldDescription  implements AbstractField{
         this.key = key;
     }
 
-    public String getDefault() {
+    public Object getDefault() {
         return _default;
     }
 

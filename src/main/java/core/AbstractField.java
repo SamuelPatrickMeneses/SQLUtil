@@ -21,7 +21,7 @@ public interface AbstractField {
 
     public void setKey(String key);
 
-    public String getDefault();
+    public Object getDefault();
 
     public void setDefault(String _default);
 

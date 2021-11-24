@@ -13,6 +13,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import Tables.Product;
+import core.ConectionFactory;
+import core.IncompatibleTableInterfaceException;
+import core.OutputTableObject;
+import core.TableNotExistsException;
 
 
 public class TestSQL {
@@ -23,41 +27,20 @@ public class TestSQL {
 
     
     public static void main(String[] args)  {
-       /* Connection  c = ConectionFactory.getIstance();
+        Connection  c = ConectionFactory.getIstance("jdbc:mysql://localhost/açai_stor", "root", "MySqlKey");
         
        try(
             OutputTableObject<Product> out = new OutputTableObject<>(
-                    c,Product.class);
+                     c,Product.class);
         ){
             Product p = new Product(1,5.5f,"","");
-            Map<String, Method> ms = new HashMap<>();
-            for(Method m :out.getClass().getMethods())
-                if(m.getName().equals("getGetters")){
-                   ms = (Map<String, Method>) m.invoke(out, ms);
-                }
-            for(String s:ms.keySet())
-                System.out.println(ms.get(s).getName());
-            System.out.println("invoco");
-        } catch (TableNotExistsException ex) {
-            throw new RuntimeException(ex);
+            out.insertInto(p);
+       } catch (TableNotExistsException ex) {
+            Logger.getLogger(TestSQL.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IncompatibleTableInterfaceException ex) {
-             throw new RuntimeException(ex);   
-        } catch (SQLException ex) {
-              ex.printStackTrace();
-        } catch (IllegalAccessException ex) {
+            Logger.getLogger(TestSQL.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
             ex.printStackTrace();
-        } catch (IllegalArgumentException ex) {
-            ex.printStackTrace();
-        } catch (InvocationTargetException ex) {
-            ex.printStackTrace();
-        }catch(NullPointerException ex){
-           
-        }catch(Exception ex){
-            ex.printStackTrace();
-        }*/
-        
-        /*Conect c = new Conect();
-        c.show("filme");
-        c.close();*/
+        }
     }
 }
