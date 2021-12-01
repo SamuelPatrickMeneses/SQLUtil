@@ -30,20 +30,13 @@ public class OutputTableObject<T> implements OutputTable<T>{
     private Class<T> _class;
     private String[] column;
     private String[] incrementedColumn;
-    private String preSearch;
-    private PreparedStatement statement;
+    private PreparedStatement insertInto;
     public OutputTableObject(Connection c, Class<T> _class) throws TableNotExistsException, IncompatibleTableInterfaceException {
         this.c = c;
         this._class = _class;
         fieldsMap = new HashMap<>();
         isTable();
-        methods = getGetters(new HashMap<>());;
-        preSearch = StringPrefactory();
-        try {
-            statement = c.prepareStatement(preSearch);
-        } catch (SQLException ex) {
-            throw new IncompatibleTableInterfaceException("Statement error.");
-        }
+        methods = getGetters(new HashMap<>());
     }
     private void isTable()throws TableNotExistsException{ 
         Table an = _class.getAnnotation(Table.class);
@@ -73,7 +66,7 @@ public class OutputTableObject<T> implements OutputTable<T>{
 
     }
     
-    private String StringPrefactory(){
+    private String stringInsertInto(){
         String out = "insert into "+_class.getAnnotation(Table.class).value()+" (";
         List<String> columns = new ArrayList(Arrays.asList(column));
         for(int i = 0;i < column.length; i++)
@@ -97,6 +90,13 @@ public class OutputTableObject<T> implements OutputTable<T>{
         }
         incrementedColumn = columns.toArray(new String[columns.size()]);
         return out.concat(fields);
+    }
+    public void loadInsertInto(String preSearch) throws IncompatibleTableInterfaceException{
+         try {
+            insertInto = c.prepareStatement(preSearch);
+        } catch (SQLException ex) {
+            throw new IncompatibleTableInterfaceException("Statement error.");
+        }
     }
 
 
@@ -140,12 +140,15 @@ public class OutputTableObject<T> implements OutputTable<T>{
 
     @Override
     public void close() throws Exception {
-       statement.close();
+       if(insertInto != null)
+            insertInto.close();
        c.close();
     }
 
     @Override
-    public <O extends T> void insertInto(O o) throws RuntimeException {
+    public <O extends T> void insertInto(O o) throws RuntimeException, IncompatibleTableInterfaceException  {
+        if(insertInto == null)
+            loadInsertInto(stringInsertInto());
         Object v = null;
         int type[] = new int[incrementedColumn.length];
         for(int i = 0; i < type.length; i++){
@@ -159,9 +162,9 @@ public class OutputTableObject<T> implements OutputTable<T>{
                 if(v == null)
                     v = fieldsMap.get(column).getDefault();
 
-                statement.setObject(i+1, v,type[i]);
+                insertInto.setObject(i+1, v,type[i]);
             }
-            statement.execute();
+            insertInto.execute();
        } catch (IllegalAccessException ex) {
 
        } catch (IllegalArgumentException ex) {
